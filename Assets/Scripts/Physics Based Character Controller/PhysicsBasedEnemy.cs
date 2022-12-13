@@ -58,6 +58,9 @@ public class PhysicsBasedEnemy : MonoBehaviour
     private NavMeshPath path;
     private float elapsed = 0.0f;
 
+    public bool ragdoll;
+    private AudioSource walkingTemp;
+
     private void Start()
     {
         path = new NavMeshPath();
@@ -66,6 +69,10 @@ public class PhysicsBasedEnemy : MonoBehaviour
 
         _rb = GetComponent<Rigidbody>();
         _gravitationalForce = Physics.gravity * _rb.mass;
+
+
+        walkingTemp = JSAM.AudioManager.PlaySoundLoop(JSAM.Sounds.Running);
+        walkingTemp.volume = 0;
 
         if (_dustParticleSystem)
         {
@@ -122,14 +129,19 @@ public class PhysicsBasedEnemy : MonoBehaviour
 
         // Update the way to the goal every second.
         elapsed += Time.fixedDeltaTime;
-        if (elapsed > 1.0f)
+        if (elapsed > .5f)
         {
             elapsed -= 1.0f;
             NavMesh.CalculatePath(transform.position, target.position, NavMesh.AllAreas, path);
         }
 
         //_moveInput = new Vector3(1, 0, 0);
-        _moveInput = Vector3.Normalize(path.corners[1] - transform.position);
+        if(path.corners.Length > 0)
+        {
+            _moveInput = Vector3.Normalize(path.corners[1] - transform.position);
+        } 
+
+
 
         (bool rayHitGround, RaycastHit rayHit) = RaycastToGround();
 
@@ -150,10 +162,14 @@ public class PhysicsBasedEnemy : MonoBehaviour
                 //{
                 //    FindObjectOfType<AudioManager>().Play("Walking");
                 //}
+
+                walkingTemp.volume = 1;
+
             }
             else
             {
                 //FindObjectOfType<AudioManager>().Stop("Walking");
+                walkingTemp.volume = 0;
             }
 
             if (_dustParticleSystem)
@@ -177,16 +193,24 @@ public class PhysicsBasedEnemy : MonoBehaviour
             }
         }
 
-        CharacterMove(_moveInput, rayHit);
+
 
         if (rayHitGround && _shouldMaintainHeight)
         {
             MaintainHeight(rayHit);
         }
 
-        Vector3 lookDirection = GetLookDirection(_characterLookDirection);
+        if (rayHitGround && !ragdoll)
+        {
+            CharacterMove(_moveInput, rayHit);
+            Vector3 lookDirection = GetLookDirection(_characterLookDirection);
+            MaintainUpright(lookDirection, rayHit);
+        }
+         
+
+
         //Vector3 lookDirection = new Vector3(-1, 0, 0);
-        MaintainUpright(lookDirection, rayHit);
+
 
         _prevGrounded = grounded;
     }

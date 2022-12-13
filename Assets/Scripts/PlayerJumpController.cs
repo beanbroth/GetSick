@@ -45,7 +45,7 @@ public class PlayerJumpController : MonoBehaviour
                 _rb.AddForce(Vector3.up * jumpForce * _rb.mass, ForceMode.Impulse);
                 isJumping = true;
                 _abcmp.enabled = false;
-                _ls.enabled = false;
+                //_ls.enabled = false;
             }
         }
         
@@ -73,7 +73,7 @@ public class PlayerJumpController : MonoBehaviour
 
     void OnCollisionStay()
     {
-        Debug.Log("grounded");
+        //Debug.Log("grounded");
         _abcmp.enabled = true;
         _ls.enabled = true;
         isGrounded = true;
@@ -81,7 +81,7 @@ public class PlayerJumpController : MonoBehaviour
     }
     void OnCollisionExit()
     {
-        Debug.Log("Not grounded");
+        //Debug.Log("Not grounded");
         isGrounded = false;
     }
 
